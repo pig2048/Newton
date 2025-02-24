@@ -12,20 +12,25 @@
 
 1. 克隆仓库：
 
-bash
+```
 git clone https://github.com/yourusername/magicnewton-bot.git
+```
+
+```
 cd magicnewton-bot
+```
 
 2. 安装依赖：
 
 (推荐步骤：)
-bash
+```
 python -m venv venv
+```
 
 
-bash
+```
 pip install -r requirements.txt
-
+```
 ## ⚙️ 配置
 
 说明：
@@ -38,7 +43,7 @@ proxy.txt 文件中存放的是你的代理信息，每行一个代理。
 config.json 文件中存放的是你的配置信息,配置是否开启代理并发处理。
 
 ## ✔️ 使用
-bash
+```
 python main.py
-
+```
 
