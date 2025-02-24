@@ -1,0 +1,24 @@
+{
+    "concurrent": {
+        "enabled": true,
+        "max_workers": 5
+    },
+    "proxy": {
+        "enabled": true,
+        "proxy_file": "proxy.txt"
+    },
+    "accounts": {
+        "accounts_file": "accounts.txt"
+    },
+    "execution": {
+        "interval_hours": 12,
+        "roll_interval": {
+            "min_seconds": 25,
+            "max_seconds": 35
+        }
+    },
+    "logging": {
+        "level": "INFO",
+        "file": "newton_bot.log"
+    }
+}
