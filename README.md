@@ -47,3 +47,4 @@ config.json 文件中存放的是你的配置信息,配置是否开启代理并�
 python main.py
 ```
 
+### 详细token获取前往推特进行查看
