@@ -13,7 +13,7 @@
 1. 克隆仓库：
 
 ```
-git clone https://github.com/pig2048/magicnewton-bot.git
+git clone https://github.com/pig2048/Newton.git
 ```
 
 ```
