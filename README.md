@@ -55,3 +55,7 @@ python main.py
 
 ## 更新
 增添了菜单并且供完成SideQuests任务交互
+```Linux
+git pull
+```
+或者重新打包覆盖即可
