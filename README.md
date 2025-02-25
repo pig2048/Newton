@@ -17,7 +17,7 @@ git clone https://github.com/pig2048/Newton.git
 ```
 
 ```
-cd magicnewton-bot
+cd Newton/
 ```
 
 2. 安装依赖：
