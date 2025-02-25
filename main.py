@@ -24,6 +24,7 @@ def load_config():
 
 CONFIG = load_config()
 
+
 logging.basicConfig(
     level=getattr(logging, CONFIG['logging']['level']),
     format="%(message)s",
@@ -49,6 +50,30 @@ class NewtonBot:
             'referer': 'https://www.magicnewton.com/portal/rewards',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
             'cookie': f'__Secure-next-auth.session-token={session_token}'
+        }
+        
+        
+        self.tasks = {
+            "twitter": {
+                "name": "关注推特",
+                "questId": "c1ff498a-fae6-4538-b8ae-e73e3ecdc482",
+                "metadata": {}
+            },
+            "discord": {
+                "name": "加入DC",
+                "questId": "0d46ac52-1d33-437c-a650-d8c79328f6c8",
+                "metadata": {}
+            },
+            "tiktok": {
+                "name": "关注TikTok",
+                "questId": "c92d51df-459e-4706-bff8-0b027f401733",
+                "metadata": {}
+            },
+            "instagram": {
+                "name": "关注Instagram",
+                "questId": "d70d0097-6cfb-44d8-9f1c-536bd60dd2b3",
+                "metadata": {}
+            }
         }
     
     def _make_request(self, method, url, **kwargs):
@@ -128,6 +153,30 @@ class NewtonBot:
         except Exception as e:
             logging.error(f"💰 Bank请求出错: {str(e)}")
             return False
+
+    def complete_task(self, task_key):
+        task = self.tasks.get(task_key)
+        if not task:
+            return False, "任务不存在"
+            
+        payload = {
+            "questId": task["questId"],
+            "metadata": task["metadata"]
+        }
+        
+        try:
+            response = self._make_request(
+                'POST',
+                'https://www.magicnewton.com/portal/api/userQuests',
+                headers=self.headers,
+                json=payload
+            )
+            if response.status_code == 200:
+                data = response.json()
+                return True, data
+            return False, "请求失败"
+        except Exception as e:
+            return False, str(e)
 
 def run_account(session_token, proxy=None):
     bot = NewtonBot(session_token, proxy)
@@ -214,18 +263,88 @@ def print_banner():
     """
     console.print(banner, style="bold blue")
 
+def execute_tasks_interaction(session_token, proxy=None):
+    bot = NewtonBot(session_token, proxy)
+    wallet_address = bot.get_wallet_address() or session_token[:10] + "..."
+    
+    logging.info(f"🎮 账户：{wallet_address} 开始执行社交任务")
+    
+    for task_key, task_info in bot.tasks.items():
+        logging.info(f"📝 账户：{wallet_address} 正在完成{task_info['name']}")
+        success, response = bot.complete_task(task_key)
+        
+        if success:
+            credits = response.get('data', {}).get('credits', 0)
+            logging.info(f"✅ 账户：{wallet_address} 完成{task_info['name']}，获得积分：{credits}")
+        else:
+            logging.error(f"❌ 账户：{wallet_address} 完成{task_info['name']}失败：{response}")
+            
+        
+        time.sleep(random.uniform(1, 3))
+    
+    total_credits = bot.get_total_credits()
+    logging.info(f"✨ 账户：{wallet_address} 所有社交任务完成！总积分：{total_credits}")
+
+def show_menu():
+    menu = """
+    ╔══════════════════════════════════════════════════════════════╗
+    ║                     🎲 MagicNewton Bot 🎲                   ║
+    ╠══════════════════════════════════════════════════════════════╣
+    ║  1. 📝 完成任务交互                                          ║
+    ║  2. 🎲 日常扔骰子                                            ║
+    ║  3. 🚪 退出程序                                              ║
+    ╚══════════════════════════════════════════════════════════════╝
+    """
+    console.print(menu, style="bold blue")
+    return input("请选择功能 (1-3): ")
+
 def main():
     print_banner()
     
-    schedule.every(CONFIG['execution']['interval_hours']).hours.do(execute_tasks)
-    
-    
-    execute_tasks()
-    
-    
     while True:
-        schedule.run_pending()
-        time.sleep(60)
+        choice = show_menu()
+        
+        if choice == "1":
+            logging.info("🚀 开始执行社交任务...")
+            try:
+                with open(CONFIG['accounts']['accounts_file'], 'r') as f:
+                    accounts = [line.strip() for line in f if line.strip()]
+                
+                proxies = None
+                if CONFIG['proxy']['enabled']:
+                    with open(CONFIG['proxy']['proxy_file'], 'r') as f:
+                        proxies = [line.strip() for line in f if line.strip()]
+                
+                if CONFIG['concurrent']['enabled']:
+                    with ThreadPoolExecutor(max_workers=CONFIG['concurrent']['max_workers']) as executor:
+                        if proxies:
+                            for session_token, proxy in zip(accounts, proxies):
+                                executor.submit(execute_tasks_interaction, session_token, proxy)
+                        else:
+                            for session_token in accounts:
+                                executor.submit(execute_tasks_interaction, session_token)
+                else:
+                    for i, session_token in enumerate(accounts):
+                        proxy = proxies[i] if proxies else None
+                        execute_tasks_interaction(session_token, proxy)
+                        
+            except Exception as e:
+                logging.error(f"❌ 执行社交任务时发生错误: {str(e)}")
+                
+        elif choice == "2":
+            
+            schedule.every(CONFIG['execution']['interval_hours']).hours.do(execute_tasks)
+            execute_tasks()
+            while True:
+                schedule.run_pending()
+                time.sleep(60)
+                
+        elif choice == "3":
+            console.print("👋 感谢使用，再见！", style="bold green")
+            break
+            
+        else:
+            console.print("❌ 无效的选择，请重新输入", style="bold red")
 
 if __name__ == "__main__":
     main()
