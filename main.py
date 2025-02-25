@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 import os
 
-# 加载配置文件
+
 def load_config():
     try:
         with open('config.json', 'r', encoding='utf-8') as f:
@@ -24,7 +24,6 @@ def load_config():
 
 CONFIG = load_config()
 
-# 配置日志
 logging.basicConfig(
     level=getattr(logging, CONFIG['logging']['level']),
     format="%(message)s",
@@ -142,7 +141,7 @@ def run_account(session_token, proxy=None):
         
         if not success:
             logging.error(f"❌ 账户：{wallet_address} 第{i+1}次roll失败，提前结束")
-            bot.bank()  # 忽略返回结果
+            bot.bank()  
             break
             
         dice_rolls = response['dice_rolls']
@@ -158,13 +157,13 @@ def run_account(session_token, proxy=None):
             )
             time.sleep(wait_time)
     
-    # 不管bank是否成功都继续执行
+    
     bot.bank()
-    # 获取最终积分
+    
     total_credits = bot.get_total_credits()
     next_time = datetime.now() + timedelta(hours=CONFIG['execution']['interval_hours'])
     
-    # 输出总结信息
+    
     logging.info(f"✨ 账户：{wallet_address} 任务完成！总积分：{total_credits}")
     logging.info(f"⏰ 账户：{wallet_address} 下次执行时间：{next_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
@@ -172,11 +171,11 @@ def execute_tasks():
     logging.info("🚀 开始执行定时任务...")
     
     try:
-        # 读取账户信息
+        
         with open(CONFIG['accounts']['accounts_file'], 'r') as f:
             accounts = [line.strip() for line in f if line.strip()]
         
-        # 如果启用代理，读取代理信息
+        
         proxies = None
         if CONFIG['proxy']['enabled']:
             with open(CONFIG['proxy']['proxy_file'], 'r') as f:
@@ -186,7 +185,7 @@ def execute_tasks():
                 logging.error("❌ 代理数量少于账户数量")
                 return
         
-        # 根据配置决定是否使用并发
+        
         if CONFIG['concurrent']['enabled']:
             with ThreadPoolExecutor(max_workers=CONFIG['concurrent']['max_workers']) as executor:
                 if proxies:
@@ -217,13 +216,13 @@ def print_banner():
 
 def main():
     print_banner()
-    # 设置定时任务
+    
     schedule.every(CONFIG['execution']['interval_hours']).hours.do(execute_tasks)
     
-    # 首次执行
+    
     execute_tasks()
     
-    # 持续运行定时任务
+    
     while True:
         schedule.run_pending()
         time.sleep(60)
