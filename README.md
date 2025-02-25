@@ -22,11 +22,14 @@ cd Newton/
 
 2. 安装依赖：
 
-(推荐步骤：)
+(推荐步骤：)WIN
 ```
 python -m venv venv
 ```
-
+Linux:
+```
+source ./venv/bin/activate
+```
 
 ```
 pip install -r requirements.txt
